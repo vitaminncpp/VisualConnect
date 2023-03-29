@@ -20,7 +20,6 @@ app.use(cors());
 app.use(morgan('tiny'));
 app.disable('x-powered-by')
 
-
 // Router
 app.use('/api', router);
 app.listen(port, host, () => {

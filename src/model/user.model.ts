@@ -1,37 +1,14 @@
 import mongoose from "mongoose";
-import bcrypt from 'bcrypt';
-import config from "config";
-import {promises} from "dns";
-
-export interface UserDocument extends mongoose.Document {
-  email: string,
-  name: string,
-  password: string,
-  createdAt: Date,
-  updatedAt: Date,
-
-  comparePassword(candidatePassword: string): Promise<boolean>,
-}
 
 const UserSchema = new mongoose.Schema({
-  email: {type: String, required: true, unique: true},
-  name: {type: String, required: true},
-  password: {type: String, required: true},
+  fName: {type: String, required: [true, "First Name is Required"]},
+  lName: {type: String, required: [true, "Last Name is Required"]},
+  username: {type: String, required: [true, "username is Required"], unique: [true, "username must be unique"]},
+  email: {type: String, required: [true, "Email is Required"], unique: [true, "Email must be unique"]},
+  password: {type: String, required: [true, "Password is Required"]},
+  mobile: {type: Number, required: [true, "Mobile No is required"], unique: [true, "Mobile No must be unique"]},
+  address: {type: String},
 }, {timestamps: true});
 
-UserSchema.pre("save", async function (next) {
-  let user = this as UserDocument;
-
-  if (!user.isModified("password")) return next();
-
-  const salt = await bcrypt.genSalt(config.get("saltWorkFactor"));
-  const hash = await bcrypt.hash(user.password, salt);
-});
-
-UserSchema.methods.comparePassword = async function (candidatePassword: string) {
-  const user = this as UserDocument;
-  return bcrypt.compare(candidatePassword, user.password).catch((e) => false);
-}
-
-const User = mongoose.model<UserDocument>("User", UserSchema);
-export default User;
+//@ts-ignore
+export default mongoose.model.Users || mongoose.model("users", UserSchema);

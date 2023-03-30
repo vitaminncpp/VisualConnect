@@ -4,7 +4,8 @@
   "license": "GPL-3",
   "main": "index",
   "scripts": {
-    "start": "nodemon --config nodemon.json src/app.ts"
+    "start": "nodemon --config nodemon.json src/app.ts",
+    "lint": "eslint --fix ."
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
@@ -19,11 +20,13 @@
     "mongoose": "^5.12.7",
     "morgan": "^1.10.0",
     "nanoid": "^4.0.1",
+    "otp-generator": "^4.0.1",
     "pino": "^8.11.0",
     "pino-pretty": "^10.0.0",
     "yup": "^1.0.2"
   },
   "devDependencies": {
+    "@types/otp-generator": "^4.0.0",
     "@types/bcrypt": "^5.0.0",
     "@types/body-parser": "^1.19.2",
     "@types/config": "^3.3.0",
@@ -40,7 +43,11 @@
     "@types/pino": "^7.0.5",
     "@types/pino-pretty": "^5.0.0",
     "@types/yup": "^0.32.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
     "concurrently": "^7.6.0",
+    "eslint": "^8.37.0",
+    "eslint-plugin-react": "^7.32.2",
     "nodemon": "^2.0.21",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.2"

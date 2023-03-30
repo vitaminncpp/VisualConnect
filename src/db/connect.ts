@@ -4,10 +4,10 @@ import log from "../logger";
 
 export async function connect() {
   const dbUri = config.get("dbUri") as string;
-  mongoose.set('strictQuery', true);
+  mongoose.set("strictQuery", true);
   const db = await mongoose.connect(dbUri);
-  log.info("Database Connected !")
+  log.info("Database Connected !");
   return db;
 }
 
-export default connect
+export default connect;

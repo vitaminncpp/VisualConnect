@@ -1,32 +1,28 @@
 import {Router} from "express";
-import mongoose from "mongoose";
-import log from "./logger";
+import auth, {localVariables} from "./middleware/auth";
 import * as controller from "./controller/app.controller";
+import {healthcheck} from "./controller/misc.controller";
 
 const router = Router();
 
-// Healthcheck
-router.get("/health", (req, res) => {
-  res.json("Everything works Fine");
-});
+router.get("/health", healthcheck)
 
 
-// POST methods
 router.route("/register").post(controller.register);
 // router.route("/registerMail").post();
-router.route("/authenticate").post((req, res) => {
-  res.json("Authenticate")
+router.route("/authenticate").post((req, res) =>
+{
+    res.json("Authenticate");
 });
 router.route("/login").post(controller.verifyUser, controller.login);
 
-// POST methods
+
 router.route("/user/:username").get(controller.getUser);
-router.route("/generateOTP").get(controller.generateOTP);
-router.route("/verifyOTP").get(controller.verifyOTP);
+router.route("/generateOTP").get(controller.verifyUser, localVariables, controller.generateOTP);
+router.route("/verifyOTP").post(controller.verifyUser, controller.verifyOTP);
 router.route("/createResetSession").get(controller.createResetSession);
 
-// PUT methods
-router.route("/updateUser").put(controller.updateUser)
+router.route("/updateUser").put(auth, controller.updateUser);
 
 
 // Register the user

@@ -140,7 +140,6 @@ export async function login(req: Request, res: Response) {
 
 export async function getUser(req: Request, res: Response) {
   const {email} = req.params;
-  console.log(email)
   try {
     if (!email) return res.status(501).send({
       error: "Invalid Email ID",
@@ -292,7 +291,39 @@ export async function resetPassword(req: Request, res: Response) {
   }
 }
 
-export async function searchUser() {
-
+export async function searchUser(req: Request, res: Response) {
+  const {searchStr} = req.query;
+  console.log(searchStr)
+  try {
+    if (!searchStr) return res.status(501).send({
+      error: "Cannot find users",
+      description: "",
+      //@ts-ignore
+      trace: new Error().stack.split("\n").map(d => d.trim()),
+    });
+    const regex = new RegExp(`${searchStr}`);
+    UserModel.find({name: {$regex: regex}}, (err: any, users: any) => {
+      if (err) {
+        res.status(500).send({
+          error: "Cannot find users", description: err,
+          //@ts-ignore
+          trace: new Error().stack.split("\n").map(d => d.trim()),
+        });
+      }
+      if (!users) {
+        return res.status(501).send({
+          error: "Couldn't find users", description: "",
+          //@ts-ignore
+          trace: new Error().stack.split("\n").map(d => d.trim()),
+        });
+      }
+      return res.status(201).send(users);
+    });
+  } catch (err) {
+    return res.status(404).send({
+      error: "Cannot find users", description: err, //@ts-ignore
+      trace: new Error().stack.split("\n").map(d => d.trim()),
+    });
+  }
 }
 

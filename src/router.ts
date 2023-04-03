@@ -23,6 +23,7 @@ router.route("/createResetSession").get(controller.createResetSession);
 
 router.route("/updateUser").put(auth, controller.updateUser);
 router.route("/resetPassword").put(controller.verifyUser, controller.resetPassword);
+router.route("/searchUser").get(controller.searchUser);
 
 
 // Register the user

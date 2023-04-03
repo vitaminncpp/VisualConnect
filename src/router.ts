@@ -5,14 +5,13 @@ import {healthcheck} from "./controller/misc.controller";
 
 const router = Router();
 
-router.get("/health", healthcheck)
+router.get("/health", healthcheck);
 
 
 router.route("/register").post(controller.register);
 // router.route("/registerMail").post();
-router.route("/authenticate").post((req, res) =>
-{
-    res.json("Authenticate");
+router.route("/authenticate").post((req, res) => {
+  res.json("Authenticate");
 });
 router.route("/login").post(controller.verifyUser, controller.login);
 
@@ -23,6 +22,7 @@ router.route("/verifyOTP").post(controller.verifyUser, controller.verifyOTP);
 router.route("/createResetSession").get(controller.createResetSession);
 
 router.route("/updateUser").put(auth, controller.updateUser);
+router.route("/resetPassword").put(controller.verifyUser, controller.resetPassword);
 
 
 // Register the user

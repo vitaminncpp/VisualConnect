@@ -16,7 +16,7 @@ router.route("/authenticate").post((req, res) => {
 router.route("/login").post(controller.verifyUser, controller.login);
 
 
-router.route("/user/:username").get(controller.getUser);
+router.route("/user/:email").get(controller.getUser);
 router.route("/generateOTP").get(controller.verifyUser, localVariables, controller.generateOTP);
 router.route("/verifyOTP").post(controller.verifyUser, controller.verifyOTP);
 router.route("/createResetSession").get(controller.createResetSession);

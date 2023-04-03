@@ -10,11 +10,11 @@ const saltWorkFactor = config.get("saltWorkFactor") as number;
 // middleware for verify user
 export async function verifyUser(req: Request, res: Response, next: NextFunction) {
   try {
-    const {username} = req.method == "GET" ? req.query : req.body;
+    const {email} = req.method == "GET" ? req.query : req.body;
     //check the user's existence
-    const exist = await UserModel.findOne({username});
+    const exist = await UserModel.findOne({email});
     if (!exist) return res.status(404).send({
-      error: "Cannot Find User", description: "", //@ts-ignore
+      error: "Cannot Find Email", description: "", //@ts-ignore
       trace: new Error().stack.split("\n").map(d => d.trim()),
     });
     next();
@@ -31,19 +31,8 @@ export async function register(req: Request, res: Response) {
   //@ts-ignore
   console.log(req.body);
   try {
-    const {fName, lName, username, password, profile, email, address, mobile} = req.body;
-    const existUsername = new Promise((resolve, reject) => {
-      UserModel.findOne({username},
-        (err: any, user: any) => {
-          if (err) reject(new Error(err));
-          if (user) reject({
-            error: "Username must be unique", description: "", //@ts-ignore
-            trace: new Error().stack.split("\n").map(d => d.trim()),
-          });
-          //@ts-ignore
-          resolve();
-        });
-    });
+    const {name, email, password, mobile} = req.body;
+
     const existEmail = new Promise((resolve, reject) => {
       UserModel.findOne({email},
         (err: any, email: any) => {
@@ -57,22 +46,15 @@ export async function register(req: Request, res: Response) {
           resolve();
         });
     });
-    Promise.all([existUsername, existEmail]).then(() => {
+    existEmail.then(() => {
         if (password) {
           bcrypt.hash(password, 10).then((pHash => {
             const userModel = {
-              fName,
-              lName,
-              username,
+              name,
+              email,
               password: pHash,
-              profile,
               mobile,
-              email
             };
-            if (address) {
-              //@ts-ignore
-              userModel.address = address;
-            }
             const user = new UserModel(userModel);
             // return a save result as a Response
             user.save()
@@ -111,9 +93,9 @@ export async function register(req: Request, res: Response) {
 }
 
 export async function login(req: Request, res: Response) {
-  const {username, password} = req.body;
+  const {email, password} = req.body;
   try {
-    UserModel.findOne({username})
+    UserModel.findOne({email})
       .then((user: any) => {
         bcrypt.compare(password, user.password)
           .then(passwordCheck => {
@@ -127,11 +109,11 @@ export async function login(req: Request, res: Response) {
             }
             //Create JWT token
             const token = jwt.sign({
-              username: user.username,
+              email: user.email,
             }, config.get("JWT_SECRETE") as string, {expiresIn: "24h"});
             return res.status(200).send({
               success: "Login Successful",
-              username: user.username,
+              email: user.email,
               token
             });
           })
@@ -157,18 +139,19 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function getUser(req: Request, res: Response) {
-  const {username} = req.params;
+  const {email} = req.params;
+  console.log(email)
   try {
-    if (!username) return res.status(501).send({
-      error: "Invalid username",
+    if (!email) return res.status(501).send({
+      error: "Invalid Email ID",
       description: "",
       //@ts-ignore
       trace: new Error().stack.split("\n").map(d => d.trim()),
     });
-    UserModel.findOne({username}, (err: any, user: any) => {
+    UserModel.findOne({email}, (err: any, user: any) => {
       if (err) {
         res.status(500).send({
-          error: "Invalid username", description: err,
+          error: "Invalid Email ID", description: err,
           //@ts-ignore
           trace: new Error().stack.split("\n").map(d => d.trim()),
         });
@@ -180,8 +163,8 @@ export async function getUser(req: Request, res: Response) {
           trace: new Error().stack.split("\n").map(d => d.trim()),
         });
       }
-      const {__id, fName, lName, username, profile, mobile, email,} = user;
-      return res.status(201).send({__id, fName, lName, username, profile, mobile, email,});
+      const {__id, name, email, mobile,} = user;
+      return res.status(201).send({__id, name, email, mobile,});
     });
   } catch (err) {
     return res.status(404).send({
@@ -194,12 +177,12 @@ export async function getUser(req: Request, res: Response) {
 export async function updateUser(req: Request, res: Response) {
   try {
     //@ts-ignore
-    const {username} = req.user;
+    const {email} = req.user;
 
-    if (username) {
+    if (email) {
       const body = req.body;
       // update the d ata
-      UserModel.updateOne({username}, body, (err: any, data: any) => {
+      UserModel.updateOne({email}, body, (err: any, data: any) => {
         if (err) {
           return res.status(501).send({
             error: "Could not update user data",
@@ -266,15 +249,15 @@ export async function createResetSession(req: Request, res: Response) {
 
 export async function resetPassword(req: Request, res: Response) {
   try {
-    const {username, password} = req.body;
+    const {email, password} = req.body;
     try {
-      UserModel.findOne({username})
+      UserModel.findOne({email})
         .then((user: any) => {
             bcrypt.hash(password, saltWorkFactor)
               .then(pHash => {
-                UserModel.updateOne({username: user.username}, {password: pHash}, (err: any, data: any) => {
-                  if(err) throw err;
-                  return res.status(201).send({success:"Password Updated Successfully"})
+                UserModel.updateOne({email: user.email}, {password: pHash}, (err: any, data: any) => {
+                  if (err) throw err;
+                  return res.status(201).send({success: "Password Updated Successfully"})
                 })
               })
               .catch((err) => {
@@ -307,6 +290,9 @@ export async function resetPassword(req: Request, res: Response) {
       trace: new Error().stack.split("\n").map(e => e.trim())
     });
   }
+}
+
+export async function searchUser() {
 
 }
 

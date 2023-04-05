@@ -61,7 +61,18 @@ export async function register(req, res) {
             // return a save result as a Response
             user.save()
               .then((result) => {
-                res.status(201).send({success: "User Registered Successfully",});
+                const token = jwt.sign({
+                  email: user.email,
+                }, process.env.JWT_SECRETE, {expiresIn: "24h"});
+                res.status(201).send({
+                  success: "User Registered Successfully",
+                  user: {
+                    name,
+                    email,
+                    mobile,
+                  },
+                  token
+                });
               }).catch((err) => res.status(500).send({
               error: "Internal Server Error",
               description: err,
@@ -108,7 +119,7 @@ export async function login(req, res) {
             const token = jwt.sign({
               email: user.email,
             }, process.env.JWT_SECRETE, {expiresIn: "24h"});
-            //@ts-ignore
+
             console.log(user);
             return res.status(200).send({
               success: "Login Successful",

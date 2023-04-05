@@ -8,7 +8,6 @@ const log = logger({
       levelFirst: true,
       translateTime: true,
       colorize: true,
-
     },
   },
   base: {

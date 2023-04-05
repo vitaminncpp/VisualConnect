@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import otpGenerator from "otp-generator";
 import config from "config";
+import session from 'express-session'
 
 const saltWorkFactor = config.get("saltWorkFactor") as number;
 
@@ -111,9 +112,11 @@ export async function login(req: Request, res: Response) {
             const token = jwt.sign({
               email: user.email,
             }, config.get("JWT_SECRETE") as string, {expiresIn: "24h"});
+            //@ts-ignore
+            console.log(user)
             return res.status(200).send({
               success: "Login Successful",
-              email: user.email,
+              user,
               token
             });
           })
@@ -248,6 +251,13 @@ export async function createResetSession(req: Request, res: Response) {
 
 export async function resetPassword(req: Request, res: Response) {
   try {
+    if (!req.app.locals.resetSession) {
+      return res.status(440).send({
+        error: "Session Expired", description: "",
+        //@ts-ignore
+        trace: new Error().stack.split("\n").map(e => e.trim())
+      });
+    }
     const {email, password} = req.body;
     try {
       UserModel.findOne({email})
@@ -256,6 +266,7 @@ export async function resetPassword(req: Request, res: Response) {
               .then(pHash => {
                 UserModel.updateOne({email: user.email}, {password: pHash}, (err: any, data: any) => {
                   if (err) throw err;
+                  req.app.locals.resetSession = false;
                   return res.status(201).send({success: "Password Updated Successfully"})
                 })
               })

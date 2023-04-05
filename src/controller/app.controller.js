@@ -78,12 +78,7 @@ export async function register(req, res) {
           });
         }
       }
-    ).catch(err => res.status(500).send({
-      error: "Could not Sign up",
-      description: err,
-      //@ts-ignore
-      trace: new Error().stack.split("\n").map(d => d.trim()),
-    }));
+    ).catch(err => res.status(500).send(err));
   } catch
     (err) {
     return res.status(500).send({
@@ -117,7 +112,11 @@ export async function login(req, res) {
             console.log(user);
             return res.status(200).send({
               success: "Login Successful",
-              user,
+              user: {
+                name: user.name,
+                email: user.email,
+                mobile: user.mobile,
+              },
               token
             });
           })

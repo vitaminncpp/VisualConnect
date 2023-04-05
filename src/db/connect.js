@@ -1,9 +1,12 @@
-import mongoose, {Mongoose} from "mongoose";
+import mongoose from "mongoose";
 import config from "config";
-import log from "../logger";
+import log from "../logger/index.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export async function connect() {
-  const dbUri = config.get("dbUri") as string;
+  const dbUri = process.env.DB_URI;
   mongoose.set("strictQuery", true);
   const db = await mongoose.connect(dbUri);
   log.info("Database Connected !");

@@ -1,17 +1,17 @@
-import express, {Express} from "express";
-import config from "config";
-import log from "./logger";
-import connect from "./db/connect";
-import routes from "./router";
+import express from "express";
+import log from "./logger/index.js";
+import connect from "./db/connect.js";
 import cors from "cors";
 import morgan from "morgan";
-import router from "./router";
+import router from "./router.js";
+import dotenv from "dotenv";
 
-const port: number = config.get("port") as number;
-const host: string = config.get("host") as string;
-import db from "./db/connect";
+dotenv.config();
+
+const port = process.env.PORT;
+const host = process.env.HOST;
 // An App
-const app: Express = express();
+const app = express();
 
 //middleware
 app.use(express.json());

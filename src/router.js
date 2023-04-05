@@ -1,7 +1,7 @@
 import {Router} from "express";
-import auth, {localVariables} from "./middleware/auth";
-import * as controller from "./controller/app.controller";
-import {healthcheck} from "./controller/misc.controller";
+import auth, {localVariables} from "./middleware/auth.js";
+import * as controller from "./controller/app.controller.js";
+import {healthcheck} from "./controller/misc.controller.js";
 
 const router = Router();
 

@@ -1,17 +1,18 @@
-import {NextFunction, Request, response, Response} from "express";
-import UserModel from "../model/user.model";
+import UserModel from "../model/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import otpGenerator from "otp-generator";
-import config from "config";
-import session from 'express-session'
+import session from "express-session";
+import dotenv from "dotenv";
 
-const saltWorkFactor = config.get("saltWorkFactor") as number;
+dotenv.config();
+
+const saltWorkFactor = process.env.SALT_WORK_FACTOR;
 
 // middleware for verify user
-export async function verifyUser(req: Request, res: Response, next: NextFunction) {
+export async function verifyUser(req, res, next) {
   try {
-    const {email} = req.method == "GET" ? req.query : req.body;
+    const {email} = req.method === "GET" ? req.query : req.body;
     //check the user's existence
     const exist = await UserModel.findOne({email});
     if (!exist) return res.status(404).send({
@@ -28,7 +29,7 @@ export async function verifyUser(req: Request, res: Response, next: NextFunction
   }
 }
 
-export async function register(req: Request, res: Response) {
+export async function register(req, res) {
   //@ts-ignore
   console.log(req.body);
   try {
@@ -36,7 +37,7 @@ export async function register(req: Request, res: Response) {
 
     const existEmail = new Promise((resolve, reject) => {
       UserModel.findOne({email},
-        (err: any, email: any) => {
+        (err, email) => {
           if (err) reject(new Error(err));
           if (email) reject({
             error: "Email must be unique", description: "",
@@ -59,9 +60,9 @@ export async function register(req: Request, res: Response) {
             const user = new UserModel(userModel);
             // return a save result as a Response
             user.save()
-              .then((result: any) => {
+              .then((result) => {
                 res.status(201).send({success: "User Registered Successfully",});
-              }).catch((err: any) => res.status(500).send({
+              }).catch((err) => res.status(500).send({
               error: "Internal Server Error",
               description: err,
               //@ts-ignore
@@ -93,11 +94,11 @@ export async function register(req: Request, res: Response) {
   }
 }
 
-export async function login(req: Request, res: Response) {
+export async function login(req, res) {
   const {email, password} = req.body;
   try {
     UserModel.findOne({email})
-      .then((user: any) => {
+      .then((user) => {
         bcrypt.compare(password, user.password)
           .then(passwordCheck => {
             if (!passwordCheck) {
@@ -111,9 +112,9 @@ export async function login(req: Request, res: Response) {
             //Create JWT token
             const token = jwt.sign({
               email: user.email,
-            }, config.get("JWT_SECRETE") as string, {expiresIn: "24h"});
+            }, process.env.JWT_SECRETE, {expiresIn: "24h"});
             //@ts-ignore
-            console.log(user)
+            console.log(user);
             return res.status(200).send({
               success: "Login Successful",
               user,
@@ -127,7 +128,7 @@ export async function login(req: Request, res: Response) {
             trace: new Error().stack.split("\n").map(d => d.trim()),
           }));
       })
-      .catch((err: any) => res.status(404).send({
+      .catch((err) => res.status(404).send({
         error: "username not found",
         description: err,
         //@ts-ignore
@@ -141,7 +142,7 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export async function getUser(req: Request, res: Response) {
+export async function getUser(req, res) {
   const {email} = req.params;
   try {
     if (!email) return res.status(501).send({
@@ -150,7 +151,7 @@ export async function getUser(req: Request, res: Response) {
       //@ts-ignore
       trace: new Error().stack.split("\n").map(d => d.trim()),
     });
-    UserModel.findOne({email}, (err: any, user: any) => {
+    UserModel.findOne({email}, (err, user) => {
       if (err) {
         res.status(500).send({
           error: "Invalid Email ID", description: err,
@@ -176,7 +177,7 @@ export async function getUser(req: Request, res: Response) {
   }
 }
 
-export async function updateUser(req: Request, res: Response) {
+export async function updateUser(req, res) {
   try {
     //@ts-ignore
     const {email} = req.user;
@@ -184,7 +185,7 @@ export async function updateUser(req: Request, res: Response) {
     if (email) {
       const body = req.body;
       // update the d ata
-      UserModel.updateOne({email}, body, (err: any, data: any) => {
+      UserModel.updateOne({email}, body, (err, data) => {
         if (err) {
           return res.status(501).send({
             error: "Could not update user data",
@@ -212,7 +213,7 @@ export async function updateUser(req: Request, res: Response) {
   }
 }
 
-export async function generateOTP(req: Request, res: Response) {
+export async function generateOTP(req, res) {
   req.app.locals.otp = otpGenerator.generate(6, {
     lowerCaseAlphabets: false,
     upperCaseAlphabets: false,
@@ -222,7 +223,7 @@ export async function generateOTP(req: Request, res: Response) {
 
 }
 
-export async function verifyOTP(req: Request, res: Response) {
+export async function verifyOTP(req, res) {
   const {code} = req.body;
   if (parseInt(req.app.locals.otp) === parseInt(code)) {
     req.app.locals.otp = null;
@@ -237,7 +238,7 @@ export async function verifyOTP(req: Request, res: Response) {
   });
 }
 
-export async function createResetSession(req: Request, res: Response) {
+export async function createResetSession(req, res) {
   if (req.app.locals.resetSession) {
     req.app.locals.resetSession = false;
     return res.status(201).send({success: "Access Granted"});
@@ -249,7 +250,7 @@ export async function createResetSession(req: Request, res: Response) {
   });
 }
 
-export async function resetPassword(req: Request, res: Response) {
+export async function resetPassword(req, res) {
   try {
     if (!req.app.locals.resetSession) {
       return res.status(440).send({
@@ -261,31 +262,31 @@ export async function resetPassword(req: Request, res: Response) {
     const {email, password} = req.body;
     try {
       UserModel.findOne({email})
-        .then((user: any) => {
+        .then((user) => {
             bcrypt.hash(password, saltWorkFactor)
               .then(pHash => {
-                UserModel.updateOne({email: user.email}, {password: pHash}, (err: any, data: any) => {
+                UserModel.updateOne({email: user.email}, {password: pHash}, (err, data) => {
                   if (err) throw err;
                   req.app.locals.resetSession = false;
-                  return res.status(201).send({success: "Password Updated Successfully"})
-                })
+                  return res.status(201).send({success: "Password Updated Successfully"});
+                });
               })
               .catch((err) => {
                 return res.status(500).send({
                   error: "Unable hash password", description: err,
                   //@ts-ignore
                   trace: new Error().stack.split("\n").map(e => e.trim())
-                })
+                });
               });
           }
         )
-        .catch((err: any) => {
+        .catch((err) => {
           return res.status(404).send({
             error: "User not found", description: err,
             //@ts-ignore
             trace: new Error().stack.split("\n").map(e => e.trim())
           });
-        })
+        });
     } catch (err) {
       return res.status(500).send({
         error: "Error Updating password", description: err,
@@ -302,9 +303,9 @@ export async function resetPassword(req: Request, res: Response) {
   }
 }
 
-export async function searchUser(req: Request, res: Response) {
+export async function searchUser(req, res) {
   const {searchStr} = req.query;
-  console.log(searchStr)
+  console.log(searchStr);
   try {
     if (!searchStr) return res.status(501).send({
       error: "Cannot find users",
@@ -313,7 +314,7 @@ export async function searchUser(req: Request, res: Response) {
       trace: new Error().stack.split("\n").map(d => d.trim()),
     });
     const regex = new RegExp(`${searchStr}`);
-    UserModel.find({name: {$regex: regex}}, (err: any, users: any) => {
+    UserModel.find({name: {$regex: regex}}, (err, users) => {
       if (err) {
         res.status(500).send({
           error: "Cannot find users", description: err,

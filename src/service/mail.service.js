@@ -1,14 +1,14 @@
 import config from "config";
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 import Mailgen from "mailgen";
 import {Request, Response} from "express";
 
 const nodeConfig = {
-  host: config.get("MAIL_HOST") as string,
-  port: config.get("MAIL_PORT") as number,
+  host: config.get("MAIL_HOST"),
+  port: config.get("MAIL_PORT"),
   auth: {
-    user: config.get("EMAIL") as string,
-    pass: config.get("MAIL_PASSWORD") as string,
+    user: config.get("EMAIL"),
+    pass: config.get("MAIL_PASSWORD"),
   }
 };
 
@@ -19,9 +19,14 @@ const mailGenerator = new Mailgen({
     name: "MailGen",
     link: "https://mailgen.js",
   }
-})
+});
 
-export const mail = async function (body: { name: string, email: string, subject: string, text: string, }) {
+/**body: { name: string, email: string, subject: string, text: string, }
+ *
+ * @param body
+ * @returns {Promise<void>}
+ */
+export const mail = async function (body) {
   const {name, email, subject, text,} = body;
   const mail = {
     body: {
@@ -29,12 +34,12 @@ export const mail = async function (body: { name: string, email: string, subject
       intro: text || `Hello ${name} !`,
       outro: "Need help or have questions ? Just replay to this Email."
     }
-  }
-  const emailBody = mailGenerator.generate(mail)
+  };
+  const emailBody = mailGenerator.generate(mail);
   const message = {
     from: nodeConfig.auth.user,
     to: body.email
-  }
-}
+  };
+};
 
 

@@ -1,6 +1,7 @@
 import {Router} from "express";
 import auth, {localVariables} from "./middleware/auth.js";
 import * as controller from "./controller/app.controller.js";
+import * as chatController from "./controller/chat.controller";
 import {healthcheck} from "./controller/misc.controller.js";
 
 const router = Router();
@@ -24,6 +25,8 @@ router.route("/createResetSession").get(controller.createResetSession);
 router.route("/updateUser").put(auth, controller.updateUser);
 router.route("/resetPassword").put(controller.verifyUser, controller.resetPassword);
 router.route("/searchUser").get(controller.searchUser);
+
+router.route("/chatRequest").post(auth,chatController.chatRequest);
 
 
 // Register the user

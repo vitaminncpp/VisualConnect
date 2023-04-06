@@ -54,7 +54,7 @@ export async function requestForChat(req,res){
     }
   }
 
-  export async function RequestAccept(req, res) {
+  export async function RequestResponse(req, res) {
     try {
       //@ts-ignore
       const {sender,receiver,response} = req.body;

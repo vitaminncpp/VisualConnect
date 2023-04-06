@@ -28,7 +28,7 @@ router.route("/searchUser").get(controller.searchUser);
 
 router.route("/chatRequest").post(auth,chatController.requestForChat);
 router.route("/GetChatRequest").post(auth,chatController.GetChatRequest);
-router.route("/RequestAccept").post(auth,chatController.RequestAccept);
+router.route("/RequestResponse").post(auth,chatController.RequestResponse);
 
 
 // Register the user

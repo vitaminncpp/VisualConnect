@@ -2,7 +2,6 @@ import UserModel from "../model/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import otpGenerator from "otp-generator";
-import session from "express-session";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -189,7 +188,6 @@ export async function getUser(req, res) {
 
 export async function updateUser(req, res) {
   try {
-    //@ts-ignore
     const {email} = req.user;
 
     if (email) {
@@ -318,27 +316,31 @@ export async function searchUser(req, res) {
   console.log(searchStr);
   try {
     if (!searchStr) return res.status(501).send({
-      error: "Cannot find users",
+      error: "Search String is Empty",
       description: "",
       //@ts-ignore
       trace: new Error().stack.split("\n").map(d => d.trim()),
     });
-    const regex = new RegExp(`${searchStr}`);
-    UserModel.find({name: {$regex: regex}}, (err, users) => {
+    const regex = new RegExp(`${searchStr}`,'i');
+    UserModel.find({name: {$regex: regex}}, (err, result) => {
       if (err) {
         res.status(500).send({
-          error: "Cannot find users", description: err,
+          error: "Couldn't find users", description: err,
           //@ts-ignore
           trace: new Error().stack.split("\n").map(d => d.trim()),
         });
       }
-      if (!users) {
+      if (!result) {
         return res.status(501).send({
           error: "Couldn't find users", description: "",
           //@ts-ignore
           trace: new Error().stack.split("\n").map(d => d.trim()),
         });
       }
+      const users = result.map((e, i) => {
+        const {name, email, mobile} = e;
+        return {name, email, mobile};
+      })
       return res.status(201).send(users);
     });
   } catch (err) {

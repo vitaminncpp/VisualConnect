@@ -112,6 +112,7 @@ export async function login(req, res) {
             }, process.env.JWT_SECRETE, { expiresIn: "24h" });
             //@ts-ignore
             console.log(user);
+
             return res.status(200).send({
               success: "Login Successful",
               user: {

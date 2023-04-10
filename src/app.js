@@ -22,7 +22,7 @@ app.disable("x-powered-by");
 
 // Router
 app.use("/api", router);
-app.listen(port, host, () => {
+app.listen(port, '0.0.0.0', () => {
   log.info(`Server is Listening at http://${host}:${port}`);
   connect();
 });

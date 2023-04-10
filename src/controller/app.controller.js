@@ -3,7 +3,6 @@ import ChatRequest from "../model/chat.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import otpGenerator from "otp-generator";
-import session from "express-session";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -30,14 +29,15 @@ export async function verifyUser(req, res, next) {
   }
 }
 
+
 export async function register(req, res) {
   //@ts-ignore
   console.log(req.body);
   try {
-    const { name, email, password, mobile } = req.body;
+    const {name, email, password, mobile} = req.body;
 
     const existEmail = new Promise((resolve, reject) => {
-      UserModel.findOne({ email },
+      UserModel.findOne({email},
         (err, email) => {
           if (err) reject(new Error(err));
           if (email) reject({
@@ -50,38 +50,49 @@ export async function register(req, res) {
         });
     });
     existEmail.then(() => {
-      if (password) {
-        bcrypt.hash(password, 10).then((pHash => {
-          const userModel = {
-            name,
-            email,
-            password: pHash,
-            mobile,
-          };
-          const user = new UserModel(userModel);
-          // return a save result as a Response
-          user.save()
-            .then((result) => {
-              res.status(201).send({ success: "User Registered Successfully", });
-            }).catch((err) => res.status(500).send({
+        if (password) {
+          bcrypt.hash(password, 10).then((pHash => {
+            const userModel = {
+              name,
+              email,
+              password: pHash,
+              mobile,
+            };
+            const user = new UserModel(userModel);
+            // return a save result as a Response
+            user.save()
+              .then((result) => {
+                const token = jwt.sign({
+                  email: user.email,
+                }, process.env.JWT_SECRETE, {expiresIn: "24h"});
+                res.status(201).send({
+                  success: "User Registered Successfully",
+                  user: {
+                    name,
+                    email,
+                    mobile,
+                  },
+                  token
+                });
+              }).catch((err) => res.status(500).send({
               error: "Internal Server Error",
               description: err,
               //@ts-ignore
               trace: new Error().stack.split("\n").map(d => d.trim()),
             }));
-        })).catch(err => {
-          res.status(500).send({
-            error: "Could not Sign up",
-            description: err,
-            //@ts-ignore
-            trace: new Error().stack.split("\n").map(d => d.trim()),
+          })).catch(err => {
+            res.status(500).send({
+              error: "Could not Sign up",
+              description: err,
+              //@ts-ignore
+              trace: new Error().stack.split("\n").map(d => d.trim()),
+            });
           });
-        });
+        }
       }
-    }
     ).catch(err => res.status(500).send(err));
   } catch
-  (err) {
+    (err) {
     return res.status(500).send({
       error: "Could not Sign up", description: err,
       //@ts-ignore
@@ -110,7 +121,6 @@ export async function login(req, res) {
             const token = jwt.sign({
               email: user.email,
             }, process.env.JWT_SECRETE, { expiresIn: "24h" });
-            //@ts-ignore
             console.log(user);
 
             return res.status(200).send({
@@ -181,7 +191,6 @@ export async function getUser(req, res) {
 
 export async function updateUser(req, res) {
   try {
-    //@ts-ignore
     const { email } = req.user;
 
     if (email) {
@@ -310,27 +319,31 @@ export async function searchUser(req, res) {
   console.log(searchStr);
   try {
     if (!searchStr) return res.status(501).send({
-      error: "Cannot find users",
+      error: "Search String is Empty",
       description: "",
       //@ts-ignore
       trace: new Error().stack.split("\n").map(d => d.trim()),
     });
-    const regex = new RegExp(`${searchStr}`);
-    UserModel.find({ name: { $regex: regex } }, (err, users) => {
+    const regex = new RegExp(`${searchStr}`,'i');
+    UserModel.find({name: {$regex: regex}}, (err, result) => {
       if (err) {
         res.status(500).send({
-          error: "Cannot find users", description: err,
+          error: "Couldn't find users", description: err,
           //@ts-ignore
           trace: new Error().stack.split("\n").map(d => d.trim()),
         });
       }
-      if (!users) {
+      if (!result) {
         return res.status(501).send({
           error: "Couldn't find users", description: "",
           //@ts-ignore
           trace: new Error().stack.split("\n").map(d => d.trim()),
         });
       }
+      const users = result.map((e, i) => {
+        const {name, email, mobile} = e;
+        return {name, email, mobile};
+      })
       return res.status(201).send(users);
     });
   } catch (err) {

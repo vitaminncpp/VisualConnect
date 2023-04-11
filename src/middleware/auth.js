@@ -9,16 +9,8 @@ dotenv.config();
 export default async function auth(req, res, next) {
   try {
     // Validate request
-    //@ts-ignore
     const token = req.headers.authorization.split(" ")[1];
-    // if(!token){
-    //   let err = new Error("you could not be authorized");
-    //   next(err);
-    //   return;
-    // }
-    //@ts-ignore
     req.user = await jwt.verify(token, process.env.JWT_SECRETE);
-    //@ts-ignore
     console.log(req.user);
     next();
   } catch (err) {
